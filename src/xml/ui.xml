@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	user interface: ui
+		pages: page, 
+-->
+<ui> 
+	<page tab="true" name="CreateEntry">
+		<label alignment="left" visible="true" text="Label" x="60" y="20" posx="400" posy="400"/>
+    <label alignment="left" visible="true" text="Label" x="60" y="20" posx="200" posy="400"/>
+	</page>
+
+	<page tab="true" name="ViewEntry">
+		<inputbox alignment="left" visible="true" text="" x="60" y="20" posx="400" posy="400"/>
+	</page>
+
+	<page tab="true" name="Add To Project">
+		<ddl alignment="center" visible="true" x="60" y="20" posx="400" posy="400">
+			<option>1</option>
+			<option>2</option>
+			<option>3</option>
+			<option>4</option>
+			<option>5</option>
+		</ddl>
+	</page>
+</ui>
