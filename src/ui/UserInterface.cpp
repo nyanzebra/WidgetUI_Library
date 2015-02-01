@@ -4,7 +4,10 @@ unsigned ui::UserInterface::m_current_page = 0; //init as beginning of pages
 
 ui::UserInterface::UserInterface() {}
 
-ui::UserInterface::UserInterface(const std::string& file) : m_xml(ci::XmlTree(file)) {}
+ui::UserInterface::UserInterface(const std::string& file) {
+	m_filename = file;
+	g_xml_node = ci::XmlTree(ci::loadFile(file));
+}
 
 ui::UserInterface::~UserInterface() {
 	for (unsigned i = 0; i < m_pages.size(); ++i) {
@@ -19,7 +22,8 @@ ui::UserInterface::~UserInterface() {
 
 void ui::UserInterface::loadXML(const std::string& file) {
 	try {
-		m_xml = ci::XmlTree(ci::loadFile(file));
+		m_filename = file;
+		g_xml_node = ci::XmlTree(ci::loadFile(file));
 	} catch (ci::XmlTree::Exception e) {
 		std::cout << e.what();
 	}
@@ -27,13 +31,14 @@ void ui::UserInterface::loadXML(const std::string& file) {
 
 void ui::UserInterface::saveXML(const std::string& file) {
 	try {
-		m_xml.write(ci::writeFile(file));
+		g_xml_node.write(ci::writeFile(file));
 	} catch (ci::XmlTree::Exception e) {
 		std::cout << e.what();
 	}
 }
 
 //factory method
+// need to add remaining classes
 ui::Widget* ui::UserInterface::constructWidget(const std::string& name, const ci::XmlTree& node) const {
 	if (name == "label") {
 		return new Label(node);
@@ -43,34 +48,69 @@ ui::Widget* ui::UserInterface::constructWidget(const std::string& name, const ci
 		return new DropDownList(node);
 	} else if (name == "textview") {
 		return new TextView(node);
-	} else if (name == "chat") {
-		return new ChatWindow(node);
 	} else if (name == "cursor") {
 		return new Cursor(node);
-	} else if (name == "filemap") {
-		return new FileMap(node);
 	} else if (name == "inputbox") {
 		return new InputBox(node);
+	} /*else if (name == "cw") {
+		return new CustomWidget(node);
+	}*/
+}
+
+void ui::UserInterface::loadImages() {
+	ci::XmlTree images = g_xml_node.getChild("ui").getChild("images");
+
+	for (ci::XmlTree::ConstIter image = images.begin(); image != images.end(); ++image) {
+		if (image->hasAttribute("mapto") && image->getValue() != "") {
+			m_map_images.insert({ image->getAttributeValue<std::string>("mapto"), ci::loadImage(image->getValue()) });
+		}
 	}
 }
 
 void ui::UserInterface::generate() {
-	if (!m_xml.isDocument()) {
+	if (!g_xml_node.isDocument()) {
 		return;
 	}
 
-	ci::XmlTree ui = m_xml.getChild("ui");
+	ci::XmlTree ui = g_xml_node.getChild("ui");
 
-	std::string tab = "tab";
 	for (ci::XmlTree::Iter page = ui.begin(); page != ui.end(); ++page) {
 		Page* p = new Page();
-
 		for (ci::XmlTree::Iter widget = page->begin(); widget != page->end(); ++widget) {
 			Widget* w = constructWidget(widget->getTag(), *widget);
 			p->add(w);
 		}
-		if (page->getAttributeValue<std::string>("tab") == "true") {
-			add(p, page->getAttributeValue<std::string>("name"));
+		/*for (ci::XmlTree::Iter widget = page->begin(); widget != page->end(); ++widget) {
+			if (widget->getTag() != "for"){
+				Widget* w = constructWidget(widget->getTag(), *widget);
+				p->add(w);
+			} else {
+				float posx, posy = 0;
+				posx = widget->getAttributeValue<float>("posx");
+				posy = widget->getAttributeValue<float>("posy");
+				auto widgets = widget->getChildren();
+				unsigned begin, end;
+				begin = widget->getAttributeValue<unsigned>("begin");
+				end = widget->getAttributeValue<unsigned>("end");
+				for (unsigned i = begin; i < end; ++i) {
+					Widget* w = constructWidget(widgets.front()->getTag(), *widgets.front());
+					if (widget->hasAttribute("column")) {
+						if (i % widget->getAttributeValue<unsigned>("column") == 0) {
+							posy += widgets.front()->getAttributeValue<unsigned>("y");
+							w->m_position.y = posy;
+							p->add(w);
+						}
+					} else {
+						p->add(w);
+					}
+					posx += widgets.front()->getAttributeValue<unsigned>("x");
+				}
+			}
+		}*/
+		if (page->hasAttribute("tab")) {
+			if (page->getAttributeValue<std::string>("tab") == "true") {
+				add(p, page->getAttributeValue<std::string>("name"));
+			}
 		} else {
 			add(p);
 		}
@@ -104,7 +144,7 @@ void ui::UserInterface::remove(const Page& page) {
 
 void ui::UserInterface::remove(const Tab& tab) {
 	for (unsigned i = 0; i < m_tabs.size(); ++i) {
-		if (m_tabs[i]->getPos() == tab.getPos()) {
+		if (m_tabs[i]->m_position == tab.m_position) {
 			m_tabs.erase(m_tabs.begin() + i);
 			break;
 		}
@@ -181,7 +221,7 @@ void ui::UserInterface::update() {
 		}
 	}
 	if (m_pages[m_current_page]) {
-		m_pages[m_current_page]->update();
+		m_pages[m_current_page]->update(g_xml_node, m_filename);
 	}
 }
 
@@ -201,10 +241,10 @@ void ui::UserInterface::tabInit() {
 		if (m_tabs[i]) {
 			m_tabs[i]->setAlignment(ci::TextBox::CENTER);
 			if (i > 0) {
-				m_tabs[i]->setPosition(ci::Vec2f(m_tabs[i - 1]->getSize().x * i, 0));
+				m_tabs[i]->m_position = ci::Vec2f(m_tabs[i - 1]->m_size.x * i, 0);
 				m_tabs[i]->render();
 			} else {
-				m_tabs[i]->setPosition(ci::Vec2f(0, 0));
+				m_tabs[i]->m_position = ci::Vec2f(0, 0);
 				m_tabs[i]->render();
 			}
 			//rest is defaulted
@@ -223,7 +263,7 @@ void ui::UserInterface::resetTabColors() {
 void ui::UserInterface::setTabSizes(const ci::Vec2f& size) {
 	for (unsigned i = 0; i < m_tabs.size(); ++i) {
 		if (m_tabs[i]) {
-			m_tabs[i]->setSize(size);
+			m_tabs[i]->m_size = size;
 		}
 	}
 }
@@ -235,9 +275,9 @@ bool ui::UserInterface::withinTabs(const ci::Vec2f& pos) const {
 		return false;
 	}
 
-	float xbegin = m_tabs[0]->getPos().x, ybegin = m_tabs[0]->getPos().y;
-	float xend = m_tabs[m_tabs.size() - 1]->getSize().x + m_tabs[m_tabs.size() - 1]->getPos().x;
-	float yend = m_tabs[m_tabs.size() - 1]->getSize().y + m_tabs[m_tabs.size() - 1]->getPos().y;
+	float xbegin = m_tabs[0]->m_position.x, ybegin = m_tabs[0]->m_position.y;
+	float xend = m_tabs[m_tabs.size() - 1]->m_size.x + m_tabs[m_tabs.size() - 1]->m_position.x;
+	float yend = m_tabs[m_tabs.size() - 1]->m_size.y + m_tabs[m_tabs.size() - 1]->m_position.y;
 	if (x >= xbegin && x <= xend + xbegin && y <= yend + ybegin && y >= ybegin) {
 		return true;
 	}

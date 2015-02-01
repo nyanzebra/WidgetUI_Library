@@ -17,8 +17,12 @@ void ui::Page::render() {
 	}
 }
 
-void ui::Page::update() { //to widgets add a bool for if it has changed... if so they get updated here
-	render();
+void ui::Page::update(ci::XmlTree& node, const std::string& filename) { //to widgets add a bool for if it has changed... if so they get updated here
+	for (unsigned i = 0; i < m_widgets.size(); ++i) {
+		if (m_widgets[i]) {
+			m_widgets[i]->update(node, filename);
+		}
+	}
 }
 
 void ui::Page::draw() {
@@ -67,7 +71,7 @@ void ui::Page::add(Widget* widget) {
 
 void ui::Page::remove(Widget* widget) {
 	for (unsigned i = 0; i < m_widgets.size(); ++i) {
-		if (m_widgets[i]->getPos() == widget->getPos() || m_widgets[i] == widget) {
+		if (m_widgets[i]->m_position == widget->m_position || m_widgets[i] == widget) {
 			m_widgets.erase(m_widgets.begin() + i);
 			break;
 		}

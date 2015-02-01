@@ -28,32 +28,32 @@ ui::DropDownList::~DropDownList() {
 }
 
 void ui::DropDownList::init() {
-	m_display->setSize(this->getSize());
-	m_display->setPosition(this->getPos());
+	m_display->m_size = this->m_size;
+	m_display->m_position = this->m_position;
 	m_display->setText("show");
 	m_display->setFontSize(DefaultFontSize);
 	m_display->setAlignment(ci::TextBox::CENTER);
 	m_display->setParent(this);
 	m_display->render();
 
-	m_box->setSize(ci::Vec2i(60, 20)); //allow for customization later
+	m_box->m_size = ci::Vec2i(60, 20); //allow for customization later
 	m_box->setAlignment(ci::TextBox::LEFT);
 	m_box->setFontSize(DefaultFontSize);
-	m_box->setPosition(calculatePosition(0));
+	m_box->m_position = calculatePosition(0);
 	m_box->setParent(this);
 	m_box->render();
 }
 
 void ui::DropDownList::draw() {
 	if (!m_display->isHidden() && m_display->getTexture()) {
-		ci::gl::draw(m_display->getTexture(), m_display->getPos());
+		ci::gl::draw(m_display->getTexture(), m_display->m_position);
 	}
 	if (!m_box->isHidden() && m_box->getTexture()) {
-		ci::gl::draw(m_box->getTexture(), m_box->getPos());
+		ci::gl::draw(m_box->getTexture(), m_box->m_position);
 	}
 	for (unsigned i = 0; i < m_options.size(); ++i) {
 		if (!m_options[i]->isHidden() && m_options[i]->getTexture()) {
-			ci::gl::draw(m_options[i]->getTexture(), m_options[i]->getPos());
+			ci::gl::draw(m_options[i]->getTexture(), m_options[i]->m_position);
 		}
 	}
 }
@@ -61,7 +61,7 @@ void ui::DropDownList::draw() {
 void ui::DropDownList::add(const std::string& text) {
 	ui::Button* b = new Button();
 	b->setText(text);
-	b->setSize(ci::Vec2i(60, 20)); //allow for customization later
+	b->m_size = (ci::Vec2i(60, 20)); //allow for customization later
 	b->hide();
 	b->setAlignment(ci::TextBox::LEFT);
 	b->setFontSize(DefaultFontSize);
@@ -77,7 +77,7 @@ void ui::DropDownList::add(const std::string& text) {
 
 void ui::DropDownList::remove(Button button) {
 	for (unsigned i = 0; i < m_options.size(); ++i) {
-		if (m_options[i]->getPos() == button.getPos()) {
+		if (m_options[i]->m_position == button.m_position) {
 			m_options.erase(m_options.begin() + i);
 		}
 	}
@@ -113,7 +113,7 @@ void ui::DropDownList::mouseDown(ci::app::MouseEvent& event) {
 			m_top_list = 0;
 			for (int i = m_top_list; i < 4; ++i) {
 				m_options[i]->show();
-				m_options[i]->setPosition(calculatePosition(i - m_top_list));
+				m_options[i]->m_position = calculatePosition(i - m_top_list);
 			}
 			m_is_displayed = true;
 		} else if (m_is_displayed) {
@@ -134,7 +134,7 @@ void ui::DropDownList::mouseDown(ci::app::MouseEvent& event) {
 			m_top_list = m_top_list + change + 4;
 		}
 		for (unsigned i = m_top_list; i < m_top_list + 4; ++i) {
-			m_options[i]->setPosition(calculatePosition(i - m_top_list));
+			m_options[i]->m_position = calculatePosition(i - m_top_list);
 		}
 	}
 }

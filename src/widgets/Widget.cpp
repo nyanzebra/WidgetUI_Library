@@ -3,7 +3,7 @@
 ui::Widget::Widget() {}
 
 ui::Widget::Widget(const ci::XmlTree& node) {
-	m_node = node;//this might allow for easier writebacks
+	m_node = ci::XmlTree(node);//this might allow for easier writebacks
 	for (auto attr : node.getAttributes()) {
 		if (attr.getName() == "alignment") {
 			if (g_alignment_map.find(attr.getValue()) == g_alignment_map.end()) {
@@ -27,10 +27,12 @@ ui::Widget::Widget(const ci::XmlTree& node) {
 			m_size.x = attr.getValue<float>();
 		} else if (attr.getName() == "posx") {
 			m_position.x = attr.getValue<float>();
-		} else  if (attr.getName() == "y"){
+		} else if (attr.getName() == "y") {
 			m_size.y = attr.getValue<float>();
 		} else if (attr.getName() == "posy") {
 			m_position.y = attr.getValue<float>();
+		} else if (attr.getName() == "id") {
+
 		}
 	}
 }
@@ -56,8 +58,40 @@ bool ui::Widget::withinWidget(const ci::Vec2f& pos) {
 	return false;
 }
 
-void ui::Widget::update() {
-	m_node.write(ci::writeFile(m_node.getPath()));
+void ui::Widget::updateNode() {
+	if (m_alignment == ci::TextBox::LEFT) {
+		m_node.setAttribute("alignment", "left");
+	} else if (m_alignment == ci::TextBox::CENTER) {
+		m_node.setAttribute("alignment", "center");
+	} else if (m_alignment == ci::TextBox::RIGHT) {
+		m_node.setAttribute("alignment", "right");
+	} else {
+		m_node.setAttribute("alignment", "left");
+	}
+	if (m_is_hidden) {
+		m_node.setAttribute("visible", "false");
+	} else {
+		m_node.setAttribute("visible", "true");
+	}
+	m_node.setAttribute("text", m_text);
+	m_node.setAttribute("x", std::to_string(m_size.x));
+	m_node.setAttribute("posx", std::to_string(m_position.x));
+	m_node.setAttribute("y", std::to_string(m_size.y));
+	m_node.setAttribute("posy", std::to_string(m_position.y));
+}
+
+void ui::Widget::update(ci::XmlTree& node, const std::string& filename) {
+	if (node.hasChild("ui")) {
+		updateNode();
+		for (ci::XmlTree::Iter page = node.getChild("ui").begin(); page != node.getChild("ui").end(); ++page) {
+			for (ci::XmlTree::Iter widget = page->begin(); widget != page->end(); ++widget) {
+				if (widget->getAttribute("id") == m_node.getAttribute("id")) {
+					*widget = m_node;
+				}
+			}
+		}
+		node.write(ci::writeFile(filename));
+	}
 }
 
 void ui::Widget::mouseUp(ci::app::MouseEvent& event) {
@@ -81,11 +115,5 @@ void ui::Widget::keyDown(ci::app::KeyEvent& event) {
 void ui::Widget::mouseDrag(ci::app::MouseEvent& event) {
 	if (m_is_draggable && m_state == SELECTED) {
 		m_position = event.getPos();
-		if (m_node.hasAttribute("x")) {
-			m_node.setAttribute("x", m_position.x);
-		}
-		if (m_node.hasAttribute("y")) {
-			m_node.setAttribute("x", m_position.y);
-		}
 	}
 }

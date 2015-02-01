@@ -12,13 +12,15 @@
 
 namespace ui {
 
+	static ci::XmlTree g_xml_node = ci::XmlTree();
+
 	class Page {
 	public:
 		Page();
 		~Page();
 
 		void render();
-		void update();
+		void update(ci::XmlTree& node, const std::string& filename);
 		void draw();
 		void mouseDown(ci::app::MouseEvent& event);
 		void mouseUp(ci::app::MouseEvent& event);
@@ -36,7 +38,6 @@ namespace ui {
 		std::vector<Widget*> m_widgets;
 	};
 
-
 	class UserInterface {
 	public:
 		UserInterface();
@@ -46,6 +47,7 @@ namespace ui {
 		void loadXML(const std::string& file);
 		void saveXML(const std::string& file);
 		void generate(); //used to generate objects from an xml file
+		void loadImages();
 
 		void add(Page* page);
 		void add(Page* page, const std::string name);
@@ -84,7 +86,9 @@ namespace ui {
 
 		Widget* constructWidget(const std::string& name, const ci::XmlTree& node) const;
 
-		ci::XmlTree m_xml;
+		std::string m_filename = "";
+
+		std::unordered_map<std::string, ci::ImageSourceRef> m_map_images;
 
 		std::vector<Page*> m_pages;
 		std::vector<Tab*> m_tabs;

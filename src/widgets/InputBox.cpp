@@ -3,7 +3,7 @@
 ui::InputBox::InputBox(const ci::XmlTree& node) : Label(node) {}
 
 void ui::InputBox::render() {
-	m_text_cursor->setPosition(ci::Vec2f(m_position.x + 4, m_position.y));
+	m_text_cursor->m_position = ci::Vec2f(m_position.x + 4, m_position.y);
 	m_textbox = ci::TextBox();
 	m_textbox.size(m_size);
 	if (m_text.size() >= DefaultStringSize) {
@@ -53,7 +53,7 @@ void ui::InputBox::keyDown(ci::app::KeyEvent& event) {
 				m_current_char++;
 			}
 		}
-		if (isProperChar(event.getCode())) {
+		if (isProperChar(event.getCode()) && (event.getCode() != 9 && event.getCode() != 13)) {
 			if (m_current_char + 1 < m_text.size()) {
 				m_text.insert(m_current_char + 1, 1, event.getChar());
 			} else {
@@ -77,10 +77,10 @@ const int ui::InputBox::calculateCharPosition(const ci::Vec2f& position) {
 			return 0;
 		}
 		int pos = (position.x - m_position.x - 4) / (g_font_point_map.at(m_font_size) / 5);
-		float pos_y = m_text_cursor->getPos().y;
+		float pos_y = m_text_cursor->m_position.y;
 		float pos_x = position.x - m_position.x - 4;
 		pos_x = pos_x - ((int)pos_x % 5);
-		m_text_cursor->setPosition(ci::Vec2f(pos_x, pos_y));
+		m_text_cursor->m_position = ci::Vec2f(pos_x, pos_y);
 		if (pos > m_text.size()) {
 			return m_text.size();
 		} else if (pos < 0) {
@@ -97,9 +97,12 @@ const int ui::InputBox::calculateCharPosition(const ci::Vec2f& position) {
 
 ui::PositionCursor::PositionCursor() {
 	m_clock.start();
-	try {
-		m_texture = ci::gl::Texture(ci::loadImage(ci::app::App::loadResource(POSITION_CURSOR)));
-	} catch (...) {}
+	//figure out how to load images as apparently it is buggy as hell
+	/*try {
+		m_texture = ci::gl::Texture(ci::loadImage("C:/Users/Robert/Desktop/CinderProject/resources/positioncursor.cur"));
+		} catch (ci::app::ResourceLoadExc e) {
+		ci::app::console() << e.what();
+		}*/
 }
 
 ui::PositionCursor::~PositionCursor() {

@@ -4,8 +4,6 @@
 #include <memory>
 #include <unordered_map>
 
-#include "../../include/Resources.h"
-
 #include "cinder/gl/Texture.h"
 #include "cinder/ImageIo.h"
 #include "cinder/app/MouseEvent.h"
@@ -96,8 +94,6 @@ namespace ui {
 
 		void setParent(Widget* widget) { m_parent_widget = widget; }
 		void setText(const std::string& text) { m_text = text; }
-		void setSize(const ci::Vec2f& size) { m_size = size; }
-		void setPosition(const ci::Vec2f& pos) { m_position = pos; }
 		void setAlignment(const ci::TextBox::Alignment& alignment) { m_alignment = alignment; }
 		void setState(const k_state& state) { m_state = state; }
 
@@ -111,19 +107,23 @@ namespace ui {
 		virtual void keyUp(ci::app::KeyEvent& event) {}
 
 		virtual void render() = 0;
-		virtual void update();
+		virtual void update(ci::XmlTree& node, const std::string& filename);
+
+		void updateNode();
 
 		void hide() { m_is_hidden = true; }
 		void show() { m_is_hidden = false; }
 
 		const bool& isHidden() const { return m_is_hidden; }
+		const unsigned& getID() const { return m_id; }
 		const k_state& getState() const { return m_state; }
 		const std::string& getText() const { return m_text; }
-		const ci::Vec2f& getSize() const { return m_size; }
-		const ci::Vec2f& getPos() const { return m_position; }
 		Widget* getParent() const { return m_parent_widget; }
 		const ci::TextBox::Alignment getAlignment() const { return m_alignment; }
 		const ci::gl::Texture& getTexture() const { return m_texture; }
+
+		ci::Vec2f m_size = ci::Vec2f::zero();
+		ci::Vec2f m_position = ci::Vec2f::zero();
 	protected:
 		bool withinWidget(const ci::Vec2f& pos);
 		bool m_is_hidden = false;
@@ -133,14 +133,11 @@ namespace ui {
 
 		ci::gl::Texture m_texture;
 
-		ci::Vec2f m_size = ci::Vec2f::zero();
-		ci::Vec2f m_position = ci::Vec2f::zero();
-
 		ci::XmlTree m_node;
 
 		k_state m_state = NORMAL;
 	private:
-
+		unsigned m_id;
 		bool m_is_draggable = false;
 	};
 
@@ -243,7 +240,7 @@ namespace ui {
 
 		virtual const int calculateCharPosition(const ci::Vec2f& position);
 
-		const bool isProperChar(const int& i);
+		virtual const bool isProperChar(const int& i);
 	private:
 		bool m_is_writable = false;
 	};
@@ -268,7 +265,7 @@ namespace ui {
 		void mouseDown(ci::app::MouseEvent& event);
 	private:
 		const ci::Vec2f calculatePosition(const int& mult) {
-			return ci::Vec2f(this->getPos().x - 60, this->getPos().y + (mult * 20));
+			return ci::Vec2f(this->m_position.x - 60, this->m_position.y + (mult * 20));
 		}
 
 		unsigned m_current_option = 0;
@@ -277,30 +274,6 @@ namespace ui {
 		Button* m_display;
 		Label* m_box;
 		bool m_is_displayed = false;
-	};
-
-	class Scroller : public Widget {
-	public:
-		Scroller();
-		Scroller(const ci::XmlTree& node);
-		~Scroller();
-
-		void render() {}
-
-		void mouseDown(ci::app::MouseEvent& event);
-		void mouseUp(ci::app::MouseEvent& event);
-		void mouseWheel(ci::app::MouseEvent& event);
-		void mouseDrag(ci::app::MouseEvent& event);
-
-		void keyDown(ci::app::KeyEvent& event);
-		void keyUp(ci::app::KeyEvent& event);
-
-	private:
-		Button* m_up;
-		Button* m_down;
-		Button* m_scroll;
-		Button* m_upper_bar;
-		Button* m_lower_bar;
 	};
 
 	class TextView : public InputBox {
@@ -316,38 +289,40 @@ namespace ui {
 		const std::string& getFilename() const { return m_filename; }
 
 		void writeContents() const {}
+		void loadContents();
 
 	private:
 		const int repatternText();
 
 		const unsigned calculateCharPosition();
 
-		ci::TextLayout m_text_layout;
+		const bool isProperChar(const int& i);
+
 		std::string m_filename = "";
 	};
 
-	class ChatWindow : public Widget {
+	/*class CustomWidget : public Widget {
 	public:
-		ChatWindow(const ci::XmlTree& node);
+		class WidgetArgs {
+		public:
+			WidgetArgs ();
+			~WidgetArgs ();
 
-		void render() {}
-	};
+		private:
+			std::list<Widget*> m_args;
+		};
 
-	class FileMap : public Widget {
-	public:
-		FileMap(const ci::XmlTree& node);
+		CustomWidget() = default;
+		CustomWidget(const ci::XmlTree& node);
 
-		void render() {}
-	};
-
-	class ProjectBar : public DropDownList { //no label
-	public:
-		ProjectBar(const ci::XmlTree& node);
-
-		void render() {}
-	};
-
-	class OptionMenu : public DropDownList {//no label or button
-	};
+		void mouseDown(ci::app::MouseEvent& event);
+		void mouseWheel(ci::app::MouseEvent& event);
+		void keyDown(ci::app::MouseEvent& event);
+		void render();
+		
+		void bindFunction(std::function<void(WidgetArgs)> function);
+	private:
+		std::function<void(WidgetArgs)> m_function;
+	};*/
 
 }

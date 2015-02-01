@@ -19,6 +19,7 @@ class ObjectLibraryApp : public AppNative {
 public:
 	void prepareSettings(Settings* settings);
 	void setup();
+	void shutdown();
 	void mouseDown(MouseEvent event);
 	void mouseUp(MouseEvent event);
 	void mouseDrag(MouseEvent event);
@@ -29,6 +30,10 @@ public:
 private:
 	UserInterface* m_ui;
 };
+
+void ObjectLibraryApp::shutdown() {
+	m_ui->update();
+}
 
 void ObjectLibraryApp::prepareSettings(Settings* settings) {
 	settings->setTitle("Object Library");

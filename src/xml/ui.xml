@@ -1,20 +1,17 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-	user interface: ui
-		pages: page, 
--->
-<ui> 
-	<page tab="true" name="CreateEntry">
-		<label alignment="left" visible="true" text="Label" x="60" y="20" posx="400" posy="400"/>
-    <label alignment="left" visible="true" text="Label" x="60" y="20" posx="200" posy="400"/>
+<?xml version="1.0" encoding="utf-8"?>
+<ui>
+	<page tab="true" name="Login">
+		<textview id="1" alignment="left" visible="true" x="100.000000" y="100.000000" posx="100.000000" posy="100.000000" text=""/>
+		<label id="2" alignment="left" visible="true" text="Label" x="60.000000" y="20.000000" posx="384.000000" posy="120.000000"/>
+		<label id="3" alignment="left" visible="true" text="Label" x="60.000000" y="20.000000" posx="225.000000" posy="401.000000"/>
+		<button id="4" visible="true" x="60" y="20" posx="200" posy="200" text="Play Bot"/>
 	</page>
-
-	<page tab="true" name="ViewEntry">
-		<inputbox alignment="left" visible="true" text="" x="60" y="20" posx="400" posy="400"/>
+	<page tab="true" name="Game">
+		<label id="5" alignment="left" visible="true" x="60" y="20" posx="400" posy="300" text="label"/>
+		<inputbox id="6" alignment="left" visible="true" text="" x="60" y="40" posx="400" posy="400"/>
 	</page>
-
-	<page tab="true" name="Add To Project">
-		<ddl alignment="center" visible="true" x="60" y="20" posx="400" posy="400">
+	<page tab="true" name="Leaderboard">
+		<ddl id="7" alignment="center" visible="true" x="60" y="20" posx="400" posy="400">
 			<option>1</option>
 			<option>2</option>
 			<option>3</option>
@@ -23,3 +20,4 @@
 		</ddl>
 	</page>
 </ui>
+
